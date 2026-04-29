@@ -21,14 +21,25 @@ app = FastAPI(
 )
 
 # CORS — allow the Vite frontend
+# Get frontend URLs from environment
+frontend_url = os.getenv("FRONTEND_URL", "")
+production_frontend_url = os.getenv("PRODUCTION_FRONTEND_URL", "")
+
+# Ensure they have https:// if they are Render URLs (no protocol)
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
+for url in [frontend_url, production_frontend_url]:
+    if url:
+        origins.append(url)
+        if not url.startswith("http"):
+            origins.append(f"https://{url}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        os.getenv("FRONTEND_URL", ""),
-        os.getenv("PRODUCTION_FRONTEND_URL", ""), # Add this
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
