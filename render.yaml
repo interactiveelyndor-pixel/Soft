@@ -23,9 +23,9 @@ services:
   # Frontend Static Site
   - type: web
     name: elyndor-frontend
-    env: static
+    runtime: static
+    staticPublishPath: frontend/dist
     buildCommand: npm install && npm run build
-    publishDir: frontend/dist
     plan: free
     region: ohio
     envVars:
