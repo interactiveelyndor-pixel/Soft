@@ -1,0 +1,41 @@
+services:
+  # Backend API
+  - type: web
+    name: elyndor-backend
+    env: docker
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: elyndor-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: elyndor-frontend
+          property: url
+
+  # Frontend Static Site
+  - type: web
+    name: elyndor-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishDir: frontend/dist
+    plan: free
+    region: ohio
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: elyndor-backend
+          property: url
+
+databases:
+  - name: elyndor-db
+    plan: free
+    region: ohio
