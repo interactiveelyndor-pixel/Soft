@@ -18,7 +18,7 @@ services:
         fromService:
           type: web
           name: elyndor-frontend
-          property: url
+          property: host
 
   # Frontend Static Site
   - type: web
@@ -27,13 +27,12 @@ services:
     staticPublishPath: frontend/dist
     buildCommand: npm install && npm run build
     plan: free
-    region: ohio
     envVars:
       - key: VITE_API_BASE_URL
         fromService:
           type: web
           name: elyndor-backend
-          property: url
+          property: host
 
 databases:
   - name: elyndor-db
