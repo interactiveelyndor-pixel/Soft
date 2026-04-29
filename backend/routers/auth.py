@@ -12,30 +12,46 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/register", response_model=schemas.UserOut, status_code=201)
 def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     """Register a new user (intern or CEO)."""
-    existing = db.query(models.User).filter(models.User.email == user_data.email).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    try:
+        existing = db.query(models.User).filter(models.User.email == user_data.email).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already registered")
 
-    initials = "".join(w[0].upper() for w in user_data.name.split()[:2])
+        # Safer initials logic
+        name_parts = user_data.name.split()
+        if not name_parts:
+            initials = "??"
+        elif len(name_parts) == 1:
+            initials = name_parts[0][:2].upper()
+        else:
+            initials = "".join(w[0].upper() for w in name_parts[:2])
 
-    new_user = models.User(
-        name=user_data.name,
-        email=user_data.email,
-        hashed_password=hash_password(user_data.password),
-        role=user_data.role,
-        department=user_data.department,
-        avatar_initials=initials,
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        new_user = models.User(
+            name=user_data.name,
+            email=user_data.email,
+            hashed_password=hash_password(user_data.password),
+            role=user_data.role,
+            department=user_data.department,
+            avatar_initials=initials,
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
 
-    # Auto-create a performance record for the new user
-    perf = models.Performance(user_id=new_user.id)
-    db.add(perf)
-    db.commit()
+        # Auto-create a performance record for the new user
+        perf = models.Performance(user_id=new_user.id)
+        db.add(perf)
+        db.commit()
 
-    return new_user
+        return new_user
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"REGISTRATION ERROR: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Registration failed due to a server error. Please check backend logs. ({str(e)})"
+        )
 
 
 @router.post("/login", response_model=schemas.Token)
