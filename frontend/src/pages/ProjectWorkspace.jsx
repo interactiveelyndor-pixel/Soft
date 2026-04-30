@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Play, Settings, Users, MessageSquare, Clock, Code } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Play, Settings, Users, MessageSquare, Clock, Code, X, UserPlus, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
 
@@ -10,27 +10,68 @@ const ProjectWorkspace = () => {
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
+  const [isBuilding, setIsBuilding] = useState(false);
+
+  const fetchProject = async () => {
+    try {
+      const response = await api.get(`/projects/${id}`);
+      setProject(response.data);
+    } catch (error) {
+      toast.error("Failed to load project data");
+      navigate('/projects');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const response = await api.get(`/projects/`);
-        // Filter out the specific project (since backend doesn't have a GET /projects/:id endpoint yet)
-        const found = response.data.find(p => p.id.toString() === id);
-        if (found) {
-          setProject(found);
-        } else {
-          toast.error("Project not found");
-          navigate('/projects');
-        }
-      } catch (error) {
-        toast.error("Failed to load project data");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProject();
   }, [id, navigate]);
+
+  const handleBuildRun = async () => {
+    if (isBuilding) return;
+    setIsBuilding(true);
+    toast.info("Initializing build sequence...");
+    
+    // Simulate build time
+    setTimeout(async () => {
+      try {
+        await api.post(`/projects/${id}/activities`, {
+          action: 'compiled production build',
+          target: 'v1.0.4-rc',
+          user_name: 'System Automation'
+        });
+        toast.success("Build completed successfully");
+        fetchProject();
+      } catch (err) {
+        toast.error("Build logging failed");
+      } finally {
+        setIsBuilding(false);
+      }
+    }, 2500);
+  };
+
+  const openTeamModal = async () => {
+    try {
+      const res = await api.get('/performance/users');
+      setAllUsers(res.data);
+      setIsTeamModalOpen(true);
+    } catch (e) {
+      toast.error("Failed to load team members");
+    }
+  };
+
+  const assignMember = async (userId) => {
+    try {
+      await api.post(`/projects/${id}/members?user_id=${userId}`);
+      toast.success("Operative assigned to project");
+      fetchProject();
+    } catch (e) {
+      toast.error("Failed to assign operative");
+    }
+  };
 
   if (loading) {
     return (
@@ -62,11 +103,12 @@ const ProjectWorkspace = () => {
           <p className="text-xs text-zinc-500">{project.project_type || 'Game'} · {project.engine || 'Custom Engine'}</p>
         </div>
         <div className="ml-auto flex items-center gap-3">
-          <button onClick={() => toast("Opening source control...")} className="btn-ghost py-2.5 px-4 text-xs font-semibold">
+          <button onClick={() => window.open("https://github.com/interactiveelyndor-pixel/Soft", "_blank")} className="btn-ghost py-2.5 px-4 text-xs font-semibold">
             <Code size={14} /> Repository
           </button>
-          <button onClick={() => toast("Compiling build...")} className="btn-primary py-2.5 px-5 text-xs font-semibold">
-            <Play size={14} className="fill-current" /> Build Run
+          <button onClick={handleBuildRun} disabled={isBuilding} className="btn-primary py-2.5 px-5 text-xs font-semibold">
+            {isBuilding ? <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <Play size={14} className="fill-current" />} 
+            {isBuilding ? 'Compiling...' : 'Build Run'}
           </button>
         </div>
       </div>
@@ -105,23 +147,23 @@ const ProjectWorkspace = () => {
               <button className="text-xs text-zinc-500 hover:text-accent transition-colors">View All</button>
             </div>
             <div className="space-y-5">
-              {[
-                { user: 'Arjun', action: 'merged PR #142', target: 'core-gameplay-loop', time: '2 hours ago', icon: Code },
-                { user: 'Sarah', action: 'uploaded asset', target: 'hero_character_v2.fbx', time: '5 hours ago', icon: Clock },
-                { user: 'System', action: 'automated build', target: 'failed (physics_bug)', time: 'Yesterday', icon: Settings },
-              ].map((activity, i) => (
-                <div key={i} className="flex gap-4 group cursor-pointer">
-                  <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-zinc-500 flex-shrink-0 group-hover:text-accent group-hover:border-accent/20 transition-all">
-                    <activity.icon size={14} />
+              {project.activities && project.activities.length > 0 ? (
+                project.activities.slice().reverse().map((activity, i) => (
+                  <div key={i} className="flex gap-4 group cursor-pointer">
+                    <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-zinc-500 flex-shrink-0 group-hover:text-accent group-hover:border-accent/20 transition-all">
+                      <Settings size={14} />
+                    </div>
+                    <div className="flex-1 min-w-0 border-b border-white/[0.04] pb-5">
+                      <p className="text-sm text-zinc-300">
+                        <span className="font-medium text-white">{activity.user_name}</span> {activity.action} <span className="text-accent">{activity.target}</span>
+                      </p>
+                      <p className="text-[10px] text-zinc-600 mt-1">{new Date(activity.created_at).toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0 border-b border-white/[0.04] pb-5">
-                    <p className="text-sm text-zinc-300">
-                      <span className="font-medium text-white">{activity.user}</span> {activity.action} <span className="text-accent">{activity.target}</span>
-                    </p>
-                    <p className="text-[10px] text-zinc-600 mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-zinc-500 py-4 text-center">No recent activity logged.</p>
+              )}
             </div>
           </div>
         </div>
@@ -135,28 +177,78 @@ const ProjectWorkspace = () => {
                 <Users size={16} className="text-zinc-500" />
                 <h2 className="text-sm font-heading font-semibold text-white">Assigned Team</h2>
               </div>
-              <span className="badge-muted">{project.team_size || 0} Members</span>
+              <span className="badge-muted">{project.members?.length || 0} Members</span>
             </div>
             <div className="space-y-3">
-              {Array.from({ length: Math.max(1, Math.min(project.team_size || 0, 5)) }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+              {project.members && project.members.length > 0 ? project.members.map((member, i) => (
+                <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                   <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-xs font-bold">
-                    {['A', 'S', 'D', 'M', 'R'][i % 5]}
+                    {member.name.substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-white">Operative {i + 1}</p>
-                    <p className="text-[10px] text-zinc-500">Developer</p>
+                    <p className="text-xs font-medium text-white">{member.name}</p>
+                    <p className="text-[10px] text-zinc-500">{member.department || 'Operative'}</p>
                   </div>
-                  <button onClick={() => toast("Opening chat...")} className="ml-auto p-2 text-zinc-500 hover:text-white transition-colors">
+                  <button onClick={() => window.location.href = `mailto:${member.email}`} className="ml-auto p-2 text-zinc-500 hover:text-white transition-colors">
                     <MessageSquare size={14} />
                   </button>
                 </div>
-              ))}
+              )) : (
+                <p className="text-xs text-zinc-500 text-center py-4">No operatives assigned yet.</p>
+              )}
             </div>
-            <button onClick={() => toast("Manage team functionality coming soon")} className="btn-ghost w-full mt-4 py-2.5 text-xs">Manage Team</button>
+            <button onClick={openTeamModal} className="btn-ghost w-full mt-4 py-2.5 text-xs">Manage Team</button>
           </div>
         </div>
       </div>
+
+      {/* Team Modal */}
+      <AnimatePresence>
+        {isTeamModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsTeamModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-[#0c0c0e] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+            >
+              <div className="px-8 py-6 border-b border-white/[0.06] flex items-center justify-between flex-shrink-0">
+                <h2 className="text-xl font-heading font-semibold text-white">Assign Operatives</h2>
+                <button onClick={() => setIsTeamModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto space-y-3">
+                {allUsers.map(u => {
+                  const isAssigned = project.members?.some(m => m.id === u.id);
+                  return (
+                    <div key={u.id} className="flex items-center justify-between p-4 rounded-xl border border-white/[0.05] bg-white/[0.01]">
+                      <div>
+                        <p className="text-sm font-medium text-white">{u.name}</p>
+                        <p className="text-xs text-zinc-500">{u.department || 'Operative'}</p>
+                      </div>
+                      {isAssigned ? (
+                        <span className="badge-green"><Check size={12} /> Assigned</span>
+                      ) : (
+                        <button onClick={() => assignMember(u.id)} className="btn-ghost py-1.5 px-3 text-xs">
+                          <UserPlus size={14} /> Assign
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

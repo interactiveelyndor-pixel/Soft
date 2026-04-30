@@ -7,7 +7,9 @@ import api from '../services/api';
 const CEODashboard = () => {
   const [stats, setStats] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [briefing, setBriefing] = useState("Initializing Elyndor AI. Fetching real-time studio metrics...");
   const [loading, setLoading] = useState(true);
+  const [generatingBriefing, setGeneratingBriefing] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -25,6 +27,9 @@ const CEODashboard = () => {
           { label: 'Active Clients', value: s.active_clients.toString(), delta: '+4 this month', positive: true, icon: Users },
         ]);
         setProjects(projectsRes.data.slice(0, 4)); // Only show first 4
+
+        const briefingRes = await api.get('/dashboard/briefing');
+        setBriefing(briefingRes.data.briefing);
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
       } finally {
@@ -52,14 +57,26 @@ const CEODashboard = () => {
           <h1 className="text-3xl font-heading font-semibold text-white tracking-tight">Studio Dashboard</h1>
         </div>
         <button 
-          onClick={() => {
-            toast.loading("Compiling AI Studio Briefing...", { duration: 2000 });
-            setTimeout(() => toast.success("Briefing compiled successfully"), 2000);
+          onClick={async () => {
+            if (generatingBriefing) return;
+            setGeneratingBriefing(true);
+            toast.loading("Compiling AI Studio Briefing...", { duration: 1500 });
+            try {
+              const res = await api.get('/dashboard/briefing');
+              setTimeout(() => {
+                setBriefing(res.data.briefing);
+                toast.success("Briefing compiled successfully");
+                setGeneratingBriefing(false);
+              }, 1500);
+            } catch(e) {
+              setGeneratingBriefing(false);
+            }
           }}
+          disabled={generatingBriefing}
           className="btn-primary text-xs"
         >
-          <Sparkles size={14} />
-          Generate AI Briefing
+          {generatingBriefing ? <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <Sparkles size={14} />}
+          {generatingBriefing ? 'Generating...' : 'Generate AI Briefing'}
         </button>
       </div>
 
@@ -147,20 +164,8 @@ const CEODashboard = () => {
             </div>
             <div className="space-y-5">
               <div className="space-y-1.5">
-                <p className="text-xs text-zinc-300 leading-relaxed">
-                  Production pipeline is healthy. {projects.filter(p => p.progress > 70).length} projects nearing completion.
-                </p>
-                <div className="h-px bg-white/[0.04]" />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-xs text-zinc-300 leading-relaxed">
-                  Recent activities indicate high engagement across the core production team.
-                </p>
-                <div className="h-px bg-white/[0.04]" />
-              </div>
-              <div>
-                <p className="text-xs text-zinc-300 leading-relaxed">
-                  Team morale this week remains stable. No critical burnout indicators.
+                <p className="text-sm text-zinc-300 leading-relaxed font-mono">
+                  {briefing}
                 </p>
               </div>
             </div>

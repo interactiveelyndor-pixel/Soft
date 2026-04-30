@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Float, Enum
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Float, Enum, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -31,6 +31,16 @@ class RoleStatus(str, enum.Enum):
 
 
 # ──────────────────────────────────────────────
+# ASSOCIATION TABLES
+# ──────────────────────────────────────────────
+project_members = Table(
+    "project_members",
+    Base.metadata,
+    Column("project_id", Integer, ForeignKey("projects.id"), primary_key=True),
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True)
+)
+
+# ──────────────────────────────────────────────
 # USERS
 # ──────────────────────────────────────────────
 class User(Base):
@@ -50,7 +60,7 @@ class User(Base):
     attendance_records = relationship("Attendance", back_populates="user")
     work_logs = relationship("WorkLog", back_populates="user")
     performance = relationship("Performance", back_populates="user", uselist=False)
-
+    projects = relationship("Project", secondary=project_members, back_populates="members")
 
 # ──────────────────────────────────────────────
 # PROJECTS
@@ -73,6 +83,21 @@ class Project(Base):
     roles = relationship("Role", back_populates="project")
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
     client = relationship("Client", back_populates="projects")
+    members = relationship("User", secondary=project_members, back_populates="projects")
+    activities = relationship("ProjectActivity", back_populates="project", cascade="all, delete-orphan")
+
+
+class ProjectActivity(Base):
+    __tablename__ = "project_activities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    action = Column(String(200), nullable=False)  # "Build Run Completed", "Merged PR", etc.
+    target = Column(String(200), nullable=True)   # "core-gameplay-loop"
+    user_name = Column(String(100), nullable=True) # "System" or "Arjun"
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    project = relationship("Project", back_populates="activities")
 
 
 # ──────────────────────────────────────────────
@@ -91,6 +116,19 @@ class Client(Base):
 
     # Relationships
     projects = relationship("Project", back_populates="client")
+    communications = relationship("ClientCommunication", back_populates="client", cascade="all, delete-orphan")
+
+
+class ClientCommunication(Base):
+    __tablename__ = "client_communications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
+    title = Column(String(200), nullable=False)
+    notes = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    client = relationship("Client", back_populates="communications")
 
 
 # ──────────────────────────────────────────────
@@ -112,6 +150,21 @@ class Role(Base):
 
     # Relationships
     project = relationship("Project", back_populates="roles")
+    applicants = relationship("Applicant", back_populates="role", cascade="all, delete-orphan")
+
+
+class Applicant(Base):
+    __tablename__ = "applicants"
+
+    id = Column(Integer, primary_key=True, index=True)
+    role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
+    name = Column(String(150), nullable=False)
+    stage = Column(String(100), default="HR Screening") # "HR Screening", "Technical Test", "Final Interview", "Offer"
+    email = Column(String(150), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    role = relationship("Role", back_populates="applicants")
 
 
 # ──────────────────────────────────────────────

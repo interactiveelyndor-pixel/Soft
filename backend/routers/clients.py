@@ -19,6 +19,43 @@ def list_clients(
     return db.query(models.Client).all()
 
 
+@router.post("/{client_id}/communications", response_model=schemas.ClientCommunicationOut)
+def log_communication(
+    client_id: int,
+    data: schemas.ClientCommunicationCreate,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_ceo)
+):
+    """Log a communication or event with a client."""
+    client = db.query(models.Client).filter(models.Client.id == client_id).first()
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+        
+    comm = models.ClientCommunication(
+        client_id=client_id,
+        title=data.title,
+        notes=data.notes
+    )
+    db.add(comm)
+    db.commit()
+    db.refresh(comm)
+    return comm
+
+
+@router.get("/{client_id}/projects", response_model=List[schemas.ProjectOut])
+def get_client_projects(
+    client_id: int,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_ceo)
+):
+    """Get all projects linked to a client."""
+    client = db.query(models.Client).filter(models.Client.id == client_id).first()
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    return client.projects
+
+
 @router.post("/", response_model=schemas.ClientOut, status_code=201)
 def create_client(
     data: schemas.ClientCreate,

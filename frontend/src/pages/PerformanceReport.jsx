@@ -17,25 +17,46 @@ const PerformanceReport = () => {
   const [perf, setPerf] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPerf = async () => {
-      try {
-        const response = await api.get(`/performance/`);
-        const found = response.data.find(p => p.id.toString() === id);
-        if (found) {
-          setPerf(found);
-        } else {
-          toast.error("Performance record not found");
-          navigate('/performance');
-        }
-      } catch (error) {
-        toast.error("Failed to load performance data");
-      } finally {
-        setLoading(false);
+  const fetchPerf = async () => {
+    try {
+      const response = await api.get(`/performance/`);
+      const found = response.data.find(p => p.id.toString() === id);
+      if (found) {
+        setPerf(found);
+      } else {
+        toast.error("Performance record not found");
+        navigate('/performance');
       }
-    };
+    } catch (error) {
+      toast.error("Failed to load performance data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPerf();
   }, [id, navigate]);
+
+  const handleAction = async (type) => {
+    try {
+      if (type === 'commend') {
+        const newScore = Math.min(100, perf.score + 5);
+        await api.patch('/performance/', { user_id: perf.user_id, zone: 'green', score: newScore });
+        toast.success("Commendation logged and score increased.");
+      } else if (type === 'warn') {
+        const newScore = Math.max(0, perf.score - 15);
+        await api.patch('/performance/', { user_id: perf.user_id, zone: 'red', score: newScore });
+        toast.warning("Formal warning issued. Zone set to Red.");
+      } else if (type === 'terminate') {
+        await api.patch(`/performance/users/${perf.user_id}/deactivate`);
+        toast.error("Termination protocol completed.");
+      }
+      fetchPerf();
+    } catch (e) {
+      toast.error("Action failed");
+    }
+  };
 
   if (loading) {
     return (
@@ -70,10 +91,10 @@ const PerformanceReport = () => {
           <p className="text-xs text-zinc-500">{perf.user_department || 'Operative'} · Record ID: {perf.id}</p>
         </div>
         <div className="ml-auto flex items-center gap-3">
-          <button onClick={() => toast("Opening communication channel...")} className="btn-ghost py-2.5 px-4 text-xs font-semibold">
+          <button onClick={() => window.location.href=`mailto:${perf.user?.email || ''}`} className="btn-ghost py-2.5 px-4 text-xs font-semibold">
             <MessageSquare size={14} /> Contact
           </button>
-          <button onClick={() => toast("Exporting official HR report...")} className="btn-primary py-2.5 px-5 text-xs font-semibold">
+          <button onClick={() => window.print()} className="btn-primary py-2.5 px-5 text-xs font-semibold">
             <Activity size={14} /> Export Report
           </button>
         </div>
@@ -140,21 +161,21 @@ const PerformanceReport = () => {
           <div className="card p-6">
             <h2 className="text-sm font-heading font-semibold text-white mb-5">HR Action Center</h2>
             <div className="space-y-3">
-              <button onClick={() => toast.success("Commendation logged.")} disabled={perf.zone !== 'green'} className="w-full flex items-center justify-between p-4 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/10 text-emerald-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+              <button onClick={() => handleAction('commend')} disabled={perf.zone !== 'green'} className="w-full flex items-center justify-between p-4 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/10 text-emerald-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                 <div className="flex items-center gap-3">
                   <Award size={16} />
                   <span className="text-xs font-semibold">Issue Commendation</span>
                 </div>
               </button>
               
-              <button onClick={() => toast.warning("Warning issued.")} disabled={perf.zone === 'black'} className="w-full flex items-center justify-between p-4 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/10 text-amber-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+              <button onClick={() => handleAction('warn')} disabled={perf.zone === 'black'} className="w-full flex items-center justify-between p-4 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/10 text-amber-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                 <div className="flex items-center gap-3">
                   <AlertTriangle size={16} />
                   <span className="text-xs font-semibold">Issue Formal Warning</span>
                 </div>
               </button>
 
-              <button onClick={() => toast.error("Termination protocol initiated.")} disabled={perf.zone === 'black'} className="w-full flex items-center justify-between p-4 rounded-xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 text-red-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+              <button onClick={() => handleAction('terminate')} disabled={perf.zone === 'black'} className="w-full flex items-center justify-between p-4 rounded-xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 text-red-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                 <div className="flex items-center gap-3">
                   <UserMinus size={16} />
                   <span className="text-xs font-semibold">Initiate Termination</span>

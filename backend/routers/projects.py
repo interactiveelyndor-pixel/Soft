@@ -19,6 +19,54 @@ def list_projects(
     return db.query(models.Project).all()
 
 
+@router.post("/{project_id}/members", response_model=schemas.ProjectOut)
+def assign_member(
+    project_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_ceo)
+):
+    """Assign an operative to a project."""
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    if user not in project.members:
+        project.members.append(user)
+        db.commit()
+        db.refresh(project)
+        
+    return project
+
+
+@router.post("/{project_id}/activities", response_model=schemas.ProjectActivityOut)
+def log_activity(
+    project_id: int,
+    data: schemas.ProjectActivityCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Log an automated activity or build run."""
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    activity = models.ProjectActivity(
+        project_id=project_id,
+        action=data.action,
+        target=data.target,
+        user_name=data.user_name or current_user.name
+    )
+    db.add(activity)
+    db.commit()
+    db.refresh(activity)
+    return activity
+
+
 @router.post("/", response_model=schemas.ProjectOut, status_code=201)
 def create_project(
     data: schemas.ProjectCreate,

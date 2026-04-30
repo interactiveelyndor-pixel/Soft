@@ -58,6 +58,24 @@ class Token(BaseModel):
     user: UserOut
 
 
+# ─── PROJECT ACTIVITY ────────────────────────
+class ProjectActivityCreate(BaseModel):
+    action: str
+    target: Optional[str] = None
+    user_name: Optional[str] = None
+
+class ProjectActivityOut(BaseModel):
+    id: int
+    project_id: int
+    action: str
+    target: Optional[str]
+    user_name: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # ─── PROJECTS ────────────────────────────────
 class ProjectCreate(BaseModel):
     name: str
@@ -87,6 +105,25 @@ class ProjectOut(BaseModel):
     progress: float
     deadline: Optional[datetime]
     created_at: datetime
+    client_id: Optional[int]
+    members: List[UserOut] = []
+    activities: List[ProjectActivityOut] = []
+
+    class Config:
+        from_attributes = True
+
+
+# ─── CLIENT COMMUNICATIONS ───────────────────
+class ClientCommunicationCreate(BaseModel):
+    title: str
+    notes: str
+
+class ClientCommunicationOut(BaseModel):
+    id: int
+    client_id: int
+    title: str
+    notes: str
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -113,6 +150,32 @@ class ClientOut(BaseModel):
     email: Optional[str]
     status: ClientStatusEnum
     industry: Optional[str]
+    notes: Optional[str]
+    created_at: datetime
+    communications: List[ClientCommunicationOut] = []
+    # projects can be fetched separately to avoid circular schema dependencies
+
+    class Config:
+        from_attributes = True
+
+
+# ─── APPLICANTS ──────────────────────────────
+class ApplicantCreate(BaseModel):
+    name: str
+    stage: str = "HR Screening"
+    email: Optional[str] = None
+    notes: Optional[str] = None
+
+class ApplicantUpdate(BaseModel):
+    stage: Optional[str] = None
+    notes: Optional[str] = None
+
+class ApplicantOut(BaseModel):
+    id: int
+    role_id: int
+    name: str
+    stage: str
+    email: Optional[str]
     notes: Optional[str]
     created_at: datetime
 
@@ -150,6 +213,7 @@ class RoleOut(BaseModel):
     description: Optional[str]
     project_id: Optional[int]
     created_at: datetime
+    applicants: List[ApplicantOut] = []
 
     class Config:
         from_attributes = True

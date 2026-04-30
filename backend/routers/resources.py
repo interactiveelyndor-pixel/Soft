@@ -19,6 +19,58 @@ def list_roles(
     return db.query(models.Role).all()
 
 
+@router.post("/{role_id}/applicants", response_model=schemas.ApplicantOut)
+def add_applicant(
+    role_id: int,
+    data: schemas.ApplicantCreate,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_ceo)
+):
+    """Add an applicant to a role pipeline."""
+    role = db.query(models.Role).filter(models.Role.id == role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+        
+    applicant = models.Applicant(
+        role_id=role_id,
+        name=data.name,
+        stage=data.stage,
+        email=data.email,
+        notes=data.notes
+    )
+    db.add(applicant)
+    db.commit()
+    db.refresh(applicant)
+    return applicant
+
+
+@router.patch("/{role_id}/applicants/{applicant_id}", response_model=schemas.ApplicantOut)
+def update_applicant(
+    role_id: int,
+    applicant_id: int,
+    data: schemas.ApplicantUpdate,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_ceo)
+):
+    """Update applicant stage/notes."""
+    applicant = db.query(models.Applicant).filter(
+        models.Applicant.id == applicant_id,
+        models.Applicant.role_id == role_id
+    ).first()
+    
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Applicant not found")
+        
+    if data.stage is not None:
+        applicant.stage = data.stage
+    if data.notes is not None:
+        applicant.notes = data.notes
+        
+    db.commit()
+    db.refresh(applicant)
+    return applicant
+
+
 @router.post("/", response_model=schemas.RoleOut, status_code=201)
 def create_role(
     data: schemas.RoleCreate,
