@@ -7,6 +7,7 @@ from database import get_db
 import models
 import schemas
 from auth import get_current_user, require_ceo
+from websockets import manager
 
 router = APIRouter(prefix="/worklogs", tags=["Work Logs"])
 
@@ -15,7 +16,7 @@ def _today_str() -> str:
 
 
 @router.post("/", response_model=schemas.WorkLogOut, status_code=201)
-def submit_work_log(
+async def submit_work_log(
     data: schemas.WorkLogCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
@@ -38,8 +39,20 @@ def submit_work_log(
         hours_worked=data.hours_worked
     )
     db.add(log)
+    
+    # Log system activity
+    activity = models.SystemActivity(
+        event_type="worklog",
+        message=f"{current_user.name} submitted their daily work log.",
+        user_id=current_user.id
+    )
+    db.add(activity)
+    
     db.commit()
     db.refresh(log)
+    
+    await manager.broadcast("new_activity", {"message": activity.message})
+    
     return log
 
 

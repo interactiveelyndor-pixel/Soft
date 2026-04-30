@@ -117,3 +117,27 @@ def delete_role(
         raise HTTPException(status_code=404, detail="Role not found")
     db.delete(role)
     db.commit()
+
+
+@router.post("/{role_id}/job-listings", response_model=schemas.JobListingOut)
+def add_job_listing(
+    role_id: int,
+    data: schemas.JobListingCreate,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_ceo)
+):
+    """Publish to a job board."""
+    role = db.query(models.Role).filter(models.Role.id == role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+        
+    listing = models.JobListing(
+        role_id=role_id,
+        platform=data.platform,
+        url=data.url,
+        status=data.status
+    )
+    db.add(listing)
+    db.commit()
+    db.refresh(listing)
+    return listing

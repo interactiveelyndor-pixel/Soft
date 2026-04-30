@@ -9,8 +9,9 @@ const RoleDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [newJobPlatform, setNewJobPlatform] = useState('LinkedIn');
   const [newApp, setNewApp] = useState({ name: '', email: '', stage: 'HR Screening' });
 
   const fetchRole = async () => {
@@ -54,6 +55,17 @@ const RoleDetail = () => {
       fetchRole();
     } catch (e) {
       toast.error("Failed to advance candidate");
+    }
+  };
+
+  const publishJob = async () => {
+    try {
+      await api.post(`/resources/${id}/job-listings`, { platform: newJobPlatform });
+      toast.success(`Job published to ${newJobPlatform}`);
+      setIsJobModalOpen(false);
+      fetchRole();
+    } catch (e) {
+      toast.error("Failed to publish job");
     }
   };
 
@@ -173,10 +185,28 @@ const RoleDetail = () => {
                   <Users size={32} className="text-zinc-600 mb-3" />
                   <p className="text-sm font-medium text-white mb-1">Pipeline is empty</p>
                   <p className="text-xs text-zinc-500 mb-4 text-center max-w-sm">There are currently no active candidates in the pipeline for this specific role.</p>
-                  <button onClick={() => toast("Publishing to job boards...")} className="btn-ghost py-2 px-4 text-xs border border-white/10">Publish to Job Boards</button>
+                  <button onClick={() => setIsJobModalOpen(true)} className="btn-ghost py-2 px-4 text-xs border border-white/10">Publish to Job Boards</button>
                 </div>
               )}
             </div>
+            
+            {/* Job Listings Section */}
+            {role.job_listings && role.job_listings.length > 0 && (
+              <div className="mt-8 border-t border-white/[0.06] pt-6">
+                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-4">Active Listings</h3>
+                <div className="flex gap-3 flex-wrap">
+                  {role.job_listings.map(job => (
+                    <div key={job.id} className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-xs text-white">{job.platform}</span>
+                    </div>
+                  ))}
+                  <button onClick={() => setIsJobModalOpen(true)} className="px-3 py-1.5 rounded-lg border border-dashed border-white/[0.1] text-xs text-zinc-500 hover:text-white transition-colors">
+                    + Post More
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -233,6 +263,45 @@ const RoleDetail = () => {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Publish Job Modal */}
+      <AnimatePresence>
+        {isJobModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsJobModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-sm bg-[#0c0c0e] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden p-6"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-heading font-semibold text-white">Publish to Boards</h2>
+                <button onClick={() => setIsJobModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors"><X size={18} /></button>
+              </div>
+              <div className="space-y-4">
+                <select 
+                  value={newJobPlatform}
+                  onChange={e => setNewJobPlatform(e.target.value)}
+                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-primary/40"
+                >
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Indeed">Indeed</option>
+                  <option value="Glassdoor">Glassdoor</option>
+                  <option value="Elyndor Careers">Elyndor Careers Page</option>
+                </select>
+                <button onClick={publishJob} className="btn-primary w-full py-3">Publish Listing</button>
+              </div>
             </motion.div>
           </div>
         )}

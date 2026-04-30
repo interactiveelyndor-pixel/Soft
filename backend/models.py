@@ -61,6 +61,18 @@ class User(Base):
     work_logs = relationship("WorkLog", back_populates="user")
     performance = relationship("Performance", back_populates="user", uselist=False)
     projects = relationship("Project", secondary=project_members, back_populates="members")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    message = Column(Text, nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="notifications")
 
 # ──────────────────────────────────────────────
 # PROJECTS
@@ -85,6 +97,7 @@ class Project(Base):
     client = relationship("Client", back_populates="projects")
     members = relationship("User", secondary=project_members, back_populates="projects")
     activities = relationship("ProjectActivity", back_populates="project", cascade="all, delete-orphan")
+    tasks = relationship("ProjectTask", back_populates="project", cascade="all, delete-orphan")
 
 
 class ProjectActivity(Base):
@@ -98,6 +111,28 @@ class ProjectActivity(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     project = relationship("Project", back_populates="activities")
+
+
+class ProjectTask(Base):
+    __tablename__ = "project_tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    title = Column(String(200), nullable=False)
+    is_completed = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    project = relationship("Project", back_populates="tasks")
+
+
+class SystemActivity(Base):
+    __tablename__ = "system_activities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_type = Column(String(100), nullable=False) # e.g. 'attendance', 'performance', 'project', 'hr'
+    message = Column(Text, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True) # Optional link to user
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 # ──────────────────────────────────────────────
@@ -151,6 +186,20 @@ class Role(Base):
     # Relationships
     project = relationship("Project", back_populates="roles")
     applicants = relationship("Applicant", back_populates="role", cascade="all, delete-orphan")
+    job_listings = relationship("JobListing", back_populates="role", cascade="all, delete-orphan")
+
+
+class JobListing(Base):
+    __tablename__ = "job_listings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
+    platform = Column(String(100), nullable=False) # e.g. 'LinkedIn', 'Indeed'
+    url = Column(String(255), nullable=True)
+    status = Column(String(50), default="active") # "active", "paused", "closed"
+    posted_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    role = relationship("Role", back_populates="job_listings")
 
 
 class Applicant(Base):

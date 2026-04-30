@@ -58,6 +58,30 @@ class Token(BaseModel):
     user: UserOut
 
 
+# ─── NOTIFICATIONS ───────────────────────────
+class NotificationOut(BaseModel):
+    id: int
+    user_id: int
+    message: str
+    is_read: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ─── SYSTEM ACTIVITY ─────────────────────────
+class SystemActivityOut(BaseModel):
+    id: int
+    event_type: str
+    message: str
+    user_id: Optional[int]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # ─── PROJECT ACTIVITY ────────────────────────
 class ProjectActivityCreate(BaseModel):
     action: str
@@ -70,6 +94,25 @@ class ProjectActivityOut(BaseModel):
     action: str
     target: Optional[str]
     user_name: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ProjectTaskCreate(BaseModel):
+    title: str
+    is_completed: bool = False
+
+class ProjectTaskUpdate(BaseModel):
+    title: Optional[str] = None
+    is_completed: Optional[bool] = None
+
+class ProjectTaskOut(BaseModel):
+    id: int
+    project_id: int
+    title: str
+    is_completed: bool
     created_at: datetime
 
     class Config:
@@ -108,6 +151,7 @@ class ProjectOut(BaseModel):
     client_id: Optional[int]
     members: List[UserOut] = []
     activities: List[ProjectActivityOut] = []
+    tasks: List[ProjectTaskOut] = []
 
     class Config:
         from_attributes = True
@@ -183,6 +227,28 @@ class ApplicantOut(BaseModel):
         from_attributes = True
 
 
+class JobListingCreate(BaseModel):
+    platform: str
+    url: Optional[str] = None
+    status: str = "active"
+
+class JobListingUpdate(BaseModel):
+    platform: Optional[str] = None
+    url: Optional[str] = None
+    status: Optional[str] = None
+
+class JobListingOut(BaseModel):
+    id: int
+    role_id: int
+    platform: str
+    url: Optional[str]
+    status: str
+    posted_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # ─── ROLES / RESOURCES ───────────────────────
 class RoleCreate(BaseModel):
     title: str
@@ -214,6 +280,7 @@ class RoleOut(BaseModel):
     project_id: Optional[int]
     created_at: datetime
     applicants: List[ApplicantOut] = []
+    job_listings: List[JobListingOut] = []
 
     class Config:
         from_attributes = True

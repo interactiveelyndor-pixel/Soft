@@ -2,11 +2,33 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutGrid, Gamepad2, Users, Briefcase, BarChart3, LogOut,
-  Terminal, Settings, Contact
+  Terminal, Settings, Contact, Bell, Check
 } from 'lucide-react';
+import api from '../services/api';
 
 const Sidebar = ({ role, onLogout }) => {
+  const [notifications, setNotifications] = React.useState([]);
+  const [showNotifications, setShowNotifications] = React.useState(false);
   const isCEO = role === 'ceo';
+
+  React.useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await api.get('/notifications/');
+        setNotifications(res.data);
+      } catch (e) {}
+    };
+    fetchNotifications();
+  }, []);
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  const markAsRead = async (id) => {
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    } catch (e) {}
+  };
 
   const ceoLinks = [
     { icon: LayoutGrid, label: 'Dashboard', to: '/dashboard' },
@@ -26,8 +48,8 @@ const Sidebar = ({ role, onLogout }) => {
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-[#060608] border-r border-white/[0.06] flex flex-col z-50">
-      {/* Logo */}
-      <div className="px-6 py-7 border-b border-white/[0.06]">
+      {/* Logo and Bell */}
+      <div className="px-6 py-7 border-b border-white/[0.06] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
             <span className="text-primary font-heading font-bold text-sm">E</span>
@@ -36,6 +58,37 @@ const Sidebar = ({ role, onLogout }) => {
             <p className="text-white font-heading font-semibold text-sm tracking-wide">Elyndor</p>
             <p className="text-zinc-600 text-[10px] tracking-widest uppercase">Studio OS</p>
           </div>
+        </div>
+        
+        <div className="relative">
+          <button 
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="p-2 text-zinc-500 hover:text-white transition-colors relative"
+          >
+            <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-[#060608]" />
+            )}
+          </button>
+          
+          {showNotifications && (
+            <div className="absolute top-full left-0 mt-2 w-72 bg-[#0c0c0e] border border-white/[0.08] rounded-xl shadow-2xl z-[100] overflow-hidden">
+              <div className="p-3 border-b border-white/[0.06] flex items-center justify-between bg-white/[0.02]">
+                <span className="text-xs font-semibold text-white">Notifications</span>
+                {unreadCount > 0 && <span className="badge-muted">{unreadCount} New</span>}
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                {notifications.length > 0 ? notifications.map(n => (
+                  <div key={n.id} onClick={() => markAsRead(n.id)} className={`p-3 border-b border-white/[0.04] cursor-pointer hover:bg-white/[0.02] transition-colors ${!n.is_read ? 'bg-primary/5' : ''}`}>
+                    <p className={`text-xs ${!n.is_read ? 'text-white font-medium' : 'text-zinc-400'}`}>{n.message}</p>
+                    <p className="text-[10px] text-zinc-600 mt-1">{new Date(n.created_at).toLocaleDateString()}</p>
+                  </div>
+                )) : (
+                  <p className="text-xs text-zinc-500 p-4 text-center">No notifications</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

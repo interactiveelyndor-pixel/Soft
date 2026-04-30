@@ -8,6 +8,7 @@ const CEODashboard = () => {
   const [stats, setStats] = useState([]);
   const [projects, setProjects] = useState([]);
   const [briefing, setBriefing] = useState("Initializing Elyndor AI. Fetching real-time studio metrics...");
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generatingBriefing, setGeneratingBriefing] = useState(false);
 
@@ -30,6 +31,9 @@ const CEODashboard = () => {
 
         const briefingRes = await api.get('/dashboard/briefing');
         setBriefing(briefingRes.data.briefing);
+        
+        const activitiesRes = await api.get('/activities/');
+        setActivities(activitiesRes.data);
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
       } finally {
@@ -38,6 +42,24 @@ const CEODashboard = () => {
     };
 
     fetchDashboardData();
+    
+    // WebSocket Setup
+    const wsUrl = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace('http', 'ws') + '/ws'
+      : 'ws://localhost:8000/ws';
+      
+    const ws = new WebSocket(wsUrl);
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg.event === 'new_activity') {
+        setActivities(prev => [
+          { message: msg.data.message, created_at: new Date().toISOString() },
+          ...prev
+        ].slice(0, 50));
+      }
+    };
+    
+    return () => ws.close();
   }, []);
 
   if (loading) {
@@ -172,23 +194,36 @@ const CEODashboard = () => {
             <button onClick={() => toast("Generating full analytics report...")} className="btn-ghost w-full mt-6 py-3 text-xs">Full Analytics Report</button>
           </div>
 
-          {/* Recent Activity Mock (Keep as mock for now or fetch if available) */}
-          <div className="card p-6">
-            <h2 className="text-sm font-heading font-semibold text-white mb-5">Recent Activity</h2>
+          {/* Recent Activity Real-time */}
+          <div className="card p-6 h-[400px] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-heading font-semibold text-white">Live Activity Feed</h2>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Live</span>
+              </div>
+            </div>
             <div className="space-y-4">
-              {[
-                { time: '09:14 AM', event: 'Arjun checked in for the day' },
-                { time: 'Yesterday', event: 'New project "Arcane Puppet" milestones updated' },
-                { time: '2 days ago', event: 'Performance review for Sarah complete' },
-              ].map((a, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-zinc-700 mt-1.5" />
-                  <div>
-                    <p className="text-xs text-zinc-300 leading-relaxed">{a.event}</p>
-                    <p className="text-[10px] text-zinc-600 mt-0.5">{a.time}</p>
-                  </div>
-                </div>
-              ))}
+              {activities.length > 0 ? activities.map((a, i) => {
+                const date = new Date(a.created_at);
+                const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                return (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    key={i} 
+                    className="flex gap-3"
+                  >
+                    <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-zinc-700 mt-1.5" />
+                    <div>
+                      <p className="text-xs text-zinc-300 leading-relaxed">{a.message}</p>
+                      <p className="text-[10px] text-zinc-600 mt-0.5">{timeString}</p>
+                    </div>
+                  </motion.div>
+                );
+              }) : (
+                <p className="text-xs text-zinc-500">No recent activity.</p>
+              )}
             </div>
           </div>
         </div>

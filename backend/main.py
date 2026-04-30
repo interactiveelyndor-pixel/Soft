@@ -7,7 +7,9 @@ from database import engine
 import models
 
 # Import all routers
-from routers import auth, projects, clients, resources, attendance, worklogs, performance, dashboard
+from routers import auth, projects, clients, resources, attendance, worklogs, performance, dashboard, notifications, activities
+from websockets import manager
+from fastapi import WebSocket, WebSocketDisconnect
 
 load_dotenv()
 
@@ -58,6 +60,17 @@ app.include_router(attendance.router)
 app.include_router(worklogs.router)
 app.include_router(performance.router)
 app.include_router(dashboard.router)
+app.include_router(notifications.router)
+app.include_router(activities.router)
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 
 @app.get("/", tags=["Health"])

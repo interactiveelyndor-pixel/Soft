@@ -17,6 +17,20 @@ const InternPortal = () => {
     pending_reviews: 0
   });
 
+  // Auto-save logic
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('elyndor_worklog_draft');
+    if (savedDraft) {
+      setLogText(savedDraft);
+    }
+  }, []);
+
+  const handleLogChange = (e) => {
+    const val = e.target.value;
+    setLogText(val);
+    localStorage.setItem('elyndor_worklog_draft', val);
+  };
+
   useEffect(() => {
     const fetchPortalData = async () => {
       try {
@@ -68,6 +82,7 @@ const InternPortal = () => {
       await api.post('/worklogs/', { tasks_completed: logText });
       setSubmitted(true);
       setStats(prev => ({ ...prev, logs_submitted: prev.logs_submitted + 1 }));
+      localStorage.removeItem('elyndor_worklog_draft');
       setTimeout(() => { setSubmitted(false); setLogText(''); }, 3000);
     } catch (error) {
       alert(error.response?.data?.detail || 'Log submission failed');
@@ -177,7 +192,7 @@ const InternPortal = () => {
           <form onSubmit={submitLog} className="space-y-5">
             <textarea
               value={logText}
-              onChange={(e) => setLogText(e.target.value)}
+              onChange={handleLogChange}
               placeholder="What did you work on today? Include tasks completed, blockers, and your plan for tomorrow..."
               className="input resize-none h-36 leading-relaxed"
               required

@@ -12,7 +12,8 @@ const ProjectWorkspace = () => {
   const [loading, setLoading] = useState(true);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
-  const [isBuilding, setIsBuilding] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [isAddingTask, setIsAddingTask] = useState(false);
 
   const fetchProject = async () => {
     try {
@@ -30,27 +31,36 @@ const ProjectWorkspace = () => {
     fetchProject();
   }, [id, navigate]);
 
-  const handleBuildRun = async () => {
-    if (isBuilding) return;
-    setIsBuilding(true);
-    toast.info("Initializing build sequence...");
-    
-    // Simulate build time
-    setTimeout(async () => {
-      try {
-        await api.post(`/projects/${id}/activities`, {
-          action: 'compiled production build',
-          target: 'v1.0.4-rc',
-          user_name: 'System Automation'
-        });
-        toast.success("Build completed successfully");
-        fetchProject();
-      } catch (err) {
-        toast.error("Build logging failed");
-      } finally {
-        setIsBuilding(false);
-      }
-    }, 2500);
+  const addTask = async () => {
+    if (!newTaskTitle.trim()) return;
+    try {
+      await api.post(`/projects/${id}/tasks`, { title: newTaskTitle });
+      setNewTaskTitle("");
+      setIsAddingTask(false);
+      fetchProject();
+      toast.success("Task added to project timeline");
+    } catch (e) {
+      toast.error("Failed to add task");
+    }
+  };
+
+  const toggleTask = async (taskId, currentStatus) => {
+    try {
+      await api.patch(`/projects/${id}/tasks/${taskId}`, { is_completed: !currentStatus });
+      fetchProject();
+    } catch (e) {
+      toast.error("Failed to update task");
+    }
+  };
+
+  const deleteTask = async (taskId) => {
+    try {
+      await api.delete(`/projects/${id}/tasks/${taskId}`);
+      fetchProject();
+      toast.success("Task removed");
+    } catch (e) {
+      toast.error("Failed to delete task");
+    }
   };
 
   const openTeamModal = async () => {
@@ -106,9 +116,8 @@ const ProjectWorkspace = () => {
           <button onClick={() => window.open("https://github.com/interactiveelyndor-pixel/Soft", "_blank")} className="btn-ghost py-2.5 px-4 text-xs font-semibold">
             <Code size={14} /> Repository
           </button>
-          <button onClick={handleBuildRun} disabled={isBuilding} className="btn-primary py-2.5 px-5 text-xs font-semibold">
-            {isBuilding ? <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <Play size={14} className="fill-current" />} 
-            {isBuilding ? 'Compiling...' : 'Build Run'}
+          <button onClick={() => setIsAddingTask(true)} className="btn-primary py-2.5 px-5 text-xs font-semibold">
+            <Settings size={14} /> Add Milestone Task
           </button>
         </div>
       </div>
@@ -140,29 +149,49 @@ const ProjectWorkspace = () => {
             </div>
           </div>
 
-          {/* Activity Mock */}
+          {/* Tasks & Milestones */}
           <div className="card p-7">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-sm font-heading font-semibold text-white">Recent Commits & Activity</h2>
-              <button className="text-xs text-zinc-500 hover:text-accent transition-colors">View All</button>
+              <h2 className="text-sm font-heading font-semibold text-white">Project Tasks & Milestones</h2>
             </div>
-            <div className="space-y-5">
-              {project.activities && project.activities.length > 0 ? (
-                project.activities.slice().reverse().map((activity, i) => (
-                  <div key={i} className="flex gap-4 group cursor-pointer">
-                    <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-zinc-500 flex-shrink-0 group-hover:text-accent group-hover:border-accent/20 transition-all">
-                      <Settings size={14} />
+            
+            {isAddingTask && (
+              <div className="flex gap-3 mb-6 p-4 rounded-xl border border-white/[0.05] bg-white/[0.01]">
+                <input 
+                  type="text" 
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  placeholder="E.g., Complete core gameplay loop..."
+                  className="input flex-1"
+                  autoFocus
+                />
+                <button onClick={addTask} className="btn-primary py-2 px-4 text-xs font-semibold">Save</button>
+                <button onClick={() => { setIsAddingTask(false); setNewTaskTitle(''); }} className="btn-ghost p-2"><X size={16}/></button>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {project.tasks && project.tasks.length > 0 ? (
+                project.tasks.map((task) => (
+                  <div key={task.id} className="flex items-center justify-between p-4 rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04] transition-colors group">
+                    <div className="flex items-center gap-4">
+                      <button 
+                        onClick={() => toggleTask(task.id, task.is_completed)}
+                        className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${task.is_completed ? 'bg-primary border-primary text-black' : 'border-white/20 hover:border-primary/50 text-transparent'}`}
+                      >
+                        <Check size={12} strokeWidth={3} />
+                      </button>
+                      <span className={`text-sm ${task.is_completed ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>
+                        {task.title}
+                      </span>
                     </div>
-                    <div className="flex-1 min-w-0 border-b border-white/[0.04] pb-5">
-                      <p className="text-sm text-zinc-300">
-                        <span className="font-medium text-white">{activity.user_name}</span> {activity.action} <span className="text-accent">{activity.target}</span>
-                      </p>
-                      <p className="text-[10px] text-zinc-600 mt-1">{new Date(activity.created_at).toLocaleString()}</p>
-                    </div>
+                    <button onClick={() => deleteTask(task.id)} className="text-zinc-600 hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity">
+                      <X size={16} />
+                    </button>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-zinc-500 py-4 text-center">No recent activity logged.</p>
+                <p className="text-sm text-zinc-500 py-4 text-center">No tasks added to the timeline yet.</p>
               )}
             </div>
           </div>
