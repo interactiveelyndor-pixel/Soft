@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Gamepad2, Code, Plus, ArrowUpRight, X, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
@@ -12,6 +13,7 @@ const statusColorMapping = {
 };
 
 const Projects = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,10 +43,11 @@ const Projects = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/projects/', newProject);
+      const response = await api.post('/projects/', newProject);
       setIsModalOpen(false);
       setNewProject({ name: '', project_type: 'Game', engine: 'Unreal Engine 5', status: 'active', progress: 0 });
-      fetchProjects();
+      // Navigate to the newly created project workspace
+      navigate(`/projects/${response.data.id}`);
     } catch (error) {
       toast.error('Failed to create project');
     }
@@ -92,7 +95,7 @@ const Projects = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            onClick={() => toast.info(`Opening project workspace for ${p.name}`)}
+            onClick={() => navigate(`/projects/${p.id}`)}
             className="card card-hover p-7 cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/3 rounded-full blur-2xl -translate-y-8 translate-x-8 pointer-events-none" />

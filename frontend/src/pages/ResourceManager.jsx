@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Briefcase, ChevronRight, Users, AlertCircle, X, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
 
 const ResourceManager = () => {
+  const navigate = useNavigate();
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,10 +35,10 @@ const ResourceManager = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/resources/', newRole);
+      const response = await api.post('/resources/', newRole);
       setIsModalOpen(false);
       setNewRole({ title: '', department: 'Dev', slots_required: 1, is_urgent: false });
-      fetchRoles();
+      navigate(`/resources/${response.data.id}`);
     } catch (error) {
       toast.error('Failed to define role');
     }
@@ -94,7 +96,7 @@ const ResourceManager = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                onClick={() => toast.info(`Viewing details for ${role.title}`)}
+                onClick={() => navigate(`/resources/${role.id}`)}
                 className="card card-hover p-5 flex items-center gap-5 cursor-pointer group"
               >
                 <div className="p-3 rounded-xl bg-accent/5 border border-accent/15 text-accent flex-shrink-0">

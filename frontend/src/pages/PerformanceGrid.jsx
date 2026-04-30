@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, ShieldAlert, UserMinus, MoreHorizontal, Search, SlidersHorizontal, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
@@ -32,6 +33,7 @@ const zoneMeta = {
 };
 
 const PerformanceGrid = () => {
+  const navigate = useNavigate();
   const [performers, setPerformers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -101,6 +103,7 @@ const PerformanceGrid = () => {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              onClick={() => navigate(`/performance/${p.id}`)}
               className={`card card-hover p-6 cursor-pointer ring-1 ${meta.ring} ${p.zone === 'black' ? 'opacity-60' : ''}`}
             >
               {/* Top */}
@@ -149,15 +152,15 @@ const PerformanceGrid = () => {
               {/* Actions */}
               <div className="flex gap-2">
                 {p.zone === 'red' ? (
-                  <button onClick={() => toast.warning(`Initiating review ops for ${p.user_name}`)} className="flex-1 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-colors">
+                  <button onClick={(e) => { e.stopPropagation(); toast.warning(`Initiating review ops for ${p.user_name}`); }} className="flex-1 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-colors">
                     Review Ops
                   </button>
                 ) : (
-                  <button onClick={() => toast(`Opening full report for ${p.user_name}`)} className="flex-1 py-2 rounded-lg btn-ghost text-xs flex items-center justify-center gap-1">
+                  <button onClick={(e) => { e.stopPropagation(); navigate(`/performance/${p.id}`); }} className="flex-1 py-2 rounded-lg btn-ghost text-xs flex items-center justify-center gap-1">
                     Full Report <ArrowUpRight size={12} />
                   </button>
                 )}
-                <button onClick={() => toast("More options")} className="p-2 rounded-lg btn-ghost"><MoreHorizontal size={15} /></button>
+                <button onClick={(e) => { e.stopPropagation(); toast("More options"); }} className="p-2 rounded-lg btn-ghost"><MoreHorizontal size={15} /></button>
               </div>
             </motion.div>
           );

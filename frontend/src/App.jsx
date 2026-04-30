@@ -6,9 +6,13 @@ import CEODashboard from './pages/CEODashboard';
 import InternPortal from './pages/InternPortal';
 import Login from './pages/Login';
 import ClientPanel from './pages/ClientPanel';
+import ClientProfile from './pages/ClientProfile';
 import ResourceManager from './pages/ResourceManager';
+import RoleDetail from './pages/RoleDetail';
 import PerformanceGrid from './pages/PerformanceGrid';
+import PerformanceReport from './pages/PerformanceReport';
 import Projects from './pages/Projects';
+import ProjectWorkspace from './pages/ProjectWorkspace';
 import { useAuth } from './context/AuthContext';
 
 const Layout = ({ children, role, onLogout }) => (
@@ -53,9 +57,13 @@ function App() {
               <>
                 <Route path="/dashboard" element={<CEODashboard />} />
                 <Route path="/projects" element={<Projects />} />
+                <Route path="/projects/:id" element={<ProjectWorkspace />} />
                 <Route path="/clients" element={<ClientPanel />} />
+                <Route path="/clients/:id" element={<ClientProfile />} />
                 <Route path="/resources" element={<ResourceManager />} />
+                <Route path="/resources/:id" element={<RoleDetail />} />
                 <Route path="/performance" element={<PerformanceGrid />} />
+                <Route path="/performance/:id" element={<PerformanceReport />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />
               </>
             ) : (
