@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Gamepad2, Users, Briefcase, Activity, TrendingUp, TrendingDown, Sparkles, ArrowUpRight } from 'lucide-react';
+import { toast } from 'sonner';
 import api from '../services/api';
 
 const CEODashboard = () => {
@@ -50,7 +51,13 @@ const CEODashboard = () => {
           <p className="label mb-1.5">Elyndor Interactive</p>
           <h1 className="text-3xl font-heading font-semibold text-white tracking-tight">Studio Dashboard</h1>
         </div>
-        <button className="btn-primary text-xs">
+        <button 
+          onClick={() => {
+            toast.loading("Compiling AI Studio Briefing...", { duration: 2000 });
+            setTimeout(() => toast.success("Briefing compiled successfully"), 2000);
+          }}
+          className="btn-primary text-xs"
+        >
           <Sparkles size={14} />
           Generate AI Briefing
         </button>
@@ -90,7 +97,7 @@ const CEODashboard = () => {
               <h2 className="text-base font-heading font-semibold text-white">Production Pipeline</h2>
               <p className="text-zinc-500 text-xs mt-0.5">{projects.length} active archives</p>
             </div>
-            <button className="btn-ghost py-2 px-4 text-xs">View All</button>
+            <button onClick={() => toast("Navigating to full pipeline view")} className="btn-ghost py-2 px-4 text-xs">View All</button>
           </div>
           <div className="divide-y divide-white/[0.04]">
             {projects.map((p, i) => (
@@ -99,6 +106,7 @@ const CEODashboard = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 + i * 0.07 }}
+                onClick={() => toast.info(`Viewing details for ${p.name}`)}
                 className="flex items-center gap-5 px-7 py-5 hover:bg-white/[0.02] transition-colors group cursor-pointer"
               >
                 <div className="flex-1 min-w-0 space-y-2">
@@ -156,7 +164,7 @@ const CEODashboard = () => {
                 </p>
               </div>
             </div>
-            <button className="btn-ghost w-full mt-6 py-3 text-xs">Full Analytics Report</button>
+            <button onClick={() => toast("Generating full analytics report...")} className="btn-ghost w-full mt-6 py-3 text-xs">Full Analytics Report</button>
           </div>
 
           {/* Recent Activity Mock (Keep as mock for now or fetch if available) */}

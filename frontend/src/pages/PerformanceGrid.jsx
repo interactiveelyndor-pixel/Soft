@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, ShieldAlert, UserMinus, MoreHorizontal, Search, SlidersHorizontal, ArrowUpRight } from 'lucide-react';
+import { toast } from 'sonner';
 import api from '../services/api';
 
 const zoneMeta = {
@@ -73,7 +74,7 @@ const PerformanceGrid = () => {
               className="input pl-9 py-2.5 w-60 text-xs"
             />
           </div>
-          <button className="btn-ghost py-2.5 px-4">
+          <button onClick={() => toast("Advanced filtering coming soon")} className="btn-ghost py-2.5 px-4">
             <SlidersHorizontal size={15} />
           </button>
         </div>
@@ -148,15 +149,15 @@ const PerformanceGrid = () => {
               {/* Actions */}
               <div className="flex gap-2">
                 {p.zone === 'red' ? (
-                  <button className="flex-1 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-colors">
+                  <button onClick={() => toast.warning(`Initiating review ops for ${p.user_name}`)} className="flex-1 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-colors">
                     Review Ops
                   </button>
                 ) : (
-                  <button className="flex-1 py-2 rounded-lg btn-ghost text-xs flex items-center justify-center gap-1">
+                  <button onClick={() => toast(`Opening full report for ${p.user_name}`)} className="flex-1 py-2 rounded-lg btn-ghost text-xs flex items-center justify-center gap-1">
                     Full Report <ArrowUpRight size={12} />
                   </button>
                 )}
-                <button className="p-2 rounded-lg btn-ghost"><MoreHorizontal size={15} /></button>
+                <button onClick={() => toast("More options")} className="p-2 rounded-lg btn-ghost"><MoreHorizontal size={15} /></button>
               </div>
             </motion.div>
           );

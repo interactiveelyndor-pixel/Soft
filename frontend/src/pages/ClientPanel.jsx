@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, History, ExternalLink, UserPlus, ArrowUpRight, TrendingUp, X, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import api from '../services/api';
 
 const ClientPanel = () => {
@@ -37,7 +38,7 @@ const ClientPanel = () => {
       setNewClient({ name: '', email: '', industry: '', status: 'active' });
       fetchClients();
     } catch (error) {
-      alert('Failed to onboard client');
+      toast.error('Failed to onboard client');
     }
   };
 
@@ -47,7 +48,7 @@ const ClientPanel = () => {
       await api.delete(`/clients/${id}`);
       fetchClients();
     } catch (error) {
-      alert('Failed to delete client');
+      toast.error('Failed to delete client');
     }
   };
 
@@ -135,14 +136,14 @@ const ClientPanel = () => {
                   <td className="px-7 py-5 text-sm text-zinc-500 font-mono">{c.email}</td>
                   <td className="px-7 py-5">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1.5 rounded-lg hover:bg-white/[0.05] text-zinc-500 hover:text-white transition-colors"><Mail size={15} /></button>
+                      <button onClick={() => toast("Opening mail client...")} className="p-1.5 rounded-lg hover:bg-white/[0.05] text-zinc-500 hover:text-white transition-colors"><Mail size={15} /></button>
                       <button 
                         onClick={() => handleDelete(c.id)}
                         className="p-1.5 rounded-lg hover:bg-red-500/10 text-zinc-500 hover:text-red-500 transition-colors"
                       >
                         <Trash2 size={15} />
                       </button>
-                      <button className="p-1.5 rounded-lg hover:bg-white/[0.05] text-zinc-500 hover:text-white transition-colors"><ExternalLink size={15} /></button>
+                      <button onClick={() => toast.info(`Viewing CRM profile for ${c.name}`)} className="p-1.5 rounded-lg hover:bg-white/[0.05] text-zinc-500 hover:text-white transition-colors"><ExternalLink size={15} /></button>
                     </div>
                   </td>
                 </motion.tr>

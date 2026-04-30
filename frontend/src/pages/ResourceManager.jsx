@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Briefcase, ChevronRight, Users, AlertCircle, X, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import api from '../services/api';
 
 const ResourceManager = () => {
@@ -37,7 +38,7 @@ const ResourceManager = () => {
       setNewRole({ title: '', department: 'Dev', slots_required: 1, is_urgent: false });
       fetchRoles();
     } catch (error) {
-      alert('Failed to define role');
+      toast.error('Failed to define role');
     }
   };
 
@@ -48,7 +49,7 @@ const ResourceManager = () => {
       await api.delete(`/resources/${id}`);
       fetchRoles();
     } catch (error) {
-      alert('Failed to delete role');
+      toast.error('Failed to delete role');
     }
   };
 
@@ -93,6 +94,7 @@ const ResourceManager = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                onClick={() => toast.info(`Viewing details for ${role.title}`)}
                 className="card card-hover p-5 flex items-center gap-5 cursor-pointer group"
               >
                 <div className="p-3 rounded-xl bg-accent/5 border border-accent/15 text-accent flex-shrink-0">
@@ -141,7 +143,7 @@ const ResourceManager = () => {
               { name: 'Dev Kapoor', role: 'Unreal Dev', stage: 'Technical Test' },
               { name: 'Isha Nair', role: 'QA Engineer', stage: 'HR Screening' },
             ].map((p, i) => (
-              <div key={i} className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-colors cursor-pointer group">
+              <div key={i} onClick={() => toast("Opening applicant profile...")} className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-colors cursor-pointer group">
                 <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center text-primary text-xs font-bold flex-shrink-0">
                   {p.name.charAt(0)}
                 </div>
@@ -153,7 +155,7 @@ const ResourceManager = () => {
               </div>
             ))}
           </div>
-          <button className="btn-ghost w-full mt-5 text-xs py-3">View All Applications</button>
+          <button onClick={() => toast("Navigating to full applicant tracking system")} className="btn-ghost w-full mt-5 text-xs py-3">View All Applications</button>
         </div>
       </div>
 

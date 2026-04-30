@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import Sidebar from './components/Sidebar';
 import CEODashboard from './pages/CEODashboard';
 import InternPortal from './pages/InternPortal';
@@ -34,6 +35,13 @@ function App() {
 
   return (
     <Router>
+      <Toaster theme="dark" position="top-right" toastOptions={{
+        style: {
+          background: '#0a0a0c',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          color: '#fff',
+        }
+      }} />
       {!user ? (
         <Routes>
           <Route path="*" element={<Login />} />
