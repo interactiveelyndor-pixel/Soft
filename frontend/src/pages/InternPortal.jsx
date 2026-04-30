@@ -65,7 +65,7 @@ const InternPortal = () => {
   const submitLog = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/worklogs/', { content: logText });
+      await api.post('/worklogs/', { tasks_completed: logText });
       setSubmitted(true);
       setStats(prev => ({ ...prev, logs_submitted: prev.logs_submitted + 1 }));
       setTimeout(() => { setSubmitted(false); setLogText(''); }, 3000);
