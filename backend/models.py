@@ -63,7 +63,7 @@ class Project(Base):
     description = Column(Text, nullable=True)
     project_type = Column(String(100), nullable=True)  # "Game", "Software", etc.
     engine = Column(String(100), nullable=True)  # Unreal, Unity, etc.
-    status = Column(Enum(ProjectStatus), default=ProjectStatus.ACTIVE)
+    status = Column(Enum(ProjectStatus, name="project_status_enum"), default=ProjectStatus.ACTIVE)
     progress = Column(Float, default=0.0)  # 0 to 100
     deadline = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -84,7 +84,7 @@ class Client(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(200), nullable=False)
     email = Column(String(150), nullable=True)
-    status = Column(Enum(ClientStatus), default=ClientStatus.ACTIVE)
+    status = Column(Enum(ClientStatus, name="client_status_enum"), default=ClientStatus.ACTIVE)
     industry = Column(String(100), nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -102,7 +102,7 @@ class Role(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200), nullable=False)
     department = Column(String(100), nullable=True)
-    status = Column(Enum(RoleStatus), default=RoleStatus.OPEN)
+    status = Column(Enum(RoleStatus, name="role_status_enum"), default=RoleStatus.OPEN)
     slots_required = Column(Integer, default=1)
     slots_filled = Column(Integer, default=0)
     is_urgent = Column(Boolean, default=False)
@@ -157,7 +157,7 @@ class Performance(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
-    zone = Column(Enum(PerformanceZone), default=PerformanceZone.GREEN)
+    zone = Column(Enum(PerformanceZone, name="performance_zone_enum"), default=PerformanceZone.GREEN)
     score = Column(Float, default=100.0)  # 0–100
     notes = Column(Text, nullable=True)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
