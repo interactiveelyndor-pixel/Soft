@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutGrid, Gamepad2, Users, Briefcase, BarChart3, LogOut,
-  Terminal, Settings, ChevronRight
+  Terminal, Settings, Contact
 } from 'lucide-react';
 
 const Sidebar = ({ role, onLogout }) => {
@@ -12,6 +12,7 @@ const Sidebar = ({ role, onLogout }) => {
     { icon: LayoutGrid, label: 'Dashboard', to: '/dashboard' },
     { icon: Gamepad2, label: 'Projects', to: '/projects' },
     { icon: Users, label: 'Clients', to: '/clients' },
+    { icon: Contact, label: 'Directory', to: '/team' },
     { icon: Briefcase, label: 'Resources', to: '/resources' },
     { icon: BarChart3, label: 'Performance', to: '/performance' },
   ];

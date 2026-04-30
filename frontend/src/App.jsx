@@ -13,6 +13,7 @@ import PerformanceGrid from './pages/PerformanceGrid';
 import PerformanceReport from './pages/PerformanceReport';
 import Projects from './pages/Projects';
 import ProjectWorkspace from './pages/ProjectWorkspace';
+import TeamDirectory from './pages/TeamDirectory';
 import { useAuth } from './context/AuthContext';
 
 const Layout = ({ children, role, onLogout }) => (
@@ -60,6 +61,7 @@ function App() {
                 <Route path="/projects/:id" element={<ProjectWorkspace />} />
                 <Route path="/clients" element={<ClientPanel />} />
                 <Route path="/clients/:id" element={<ClientProfile />} />
+                <Route path="/team" element={<TeamDirectory />} />
                 <Route path="/resources" element={<ResourceManager />} />
                 <Route path="/resources/:id" element={<RoleDetail />} />
                 <Route path="/performance" element={<PerformanceGrid />} />
