@@ -2,6 +2,11 @@ import axios from 'axios';
 
 let API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
+// If Render injected just the internal hostname (e.g. elyndor-backend-lo3d), append .onrender.com
+if (API_URL && !API_URL.includes('localhost') && !API_URL.includes('onrender.com')) {
+  API_URL = `${API_URL}.onrender.com`;
+}
+
 // If it's a hostname from Render (no protocol), prepend https://
 if (API_URL && !API_URL.startsWith('http')) {
   API_URL = `https://${API_URL}`;

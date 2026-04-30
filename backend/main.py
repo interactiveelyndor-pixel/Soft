@@ -33,6 +33,10 @@ origins = [
 
 for url in [frontend_url, production_frontend_url]:
     if url:
+        # If Render injected just the internal hostname, append .onrender.com
+        if "localhost" not in url and "onrender.com" not in url:
+            url = f"{url}.onrender.com"
+            
         origins.append(url)
         if not url.startswith("http"):
             origins.append(f"https://{url}")
