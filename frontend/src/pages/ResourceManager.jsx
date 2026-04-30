@@ -133,31 +133,35 @@ const ResourceManager = () => {
           })}
         </div>
 
-        {/* Hiring Pipeline Mock (Keep as mock for now) */}
-        <div className="card p-6">
+        {/* Hiring Pipeline */}
+        <div className="card p-6 flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-sm font-heading font-semibold text-white">Hiring Pipeline</h2>
-            <span className="badge-green"><Users size={11} />3 active</span>
+            <span className="badge-green"><Users size={11} />{roles.flatMap(r => r.applicants || []).length} active</span>
           </div>
-          <div className="space-y-4">
-            {[
-              { name: 'Ananya Bose', role: '3D Artist', stage: 'Final Interview' },
-              { name: 'Dev Kapoor', role: 'Unreal Dev', stage: 'Technical Test' },
-              { name: 'Isha Nair', role: 'QA Engineer', stage: 'HR Screening' },
-            ].map((p, i) => (
-              <div key={i} onClick={() => toast("Opening applicant profile...")} className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-colors cursor-pointer group">
+          <div className="space-y-4 flex-1 overflow-y-auto min-h-[300px]">
+            {roles.flatMap(r => (r.applicants || []).map(a => ({...a, roleTitle: r.title})))
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .map((p, i) => (
+              <div key={p.id} onClick={() => navigate(`/resources/${p.role_id}`)} className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-colors cursor-pointer group">
                 <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center text-primary text-xs font-bold flex-shrink-0">
-                  {p.name.charAt(0)}
+                  {p.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-white font-medium truncate">{p.name}</p>
-                  <p className="text-xs text-zinc-500 truncate">{p.role}</p>
+                  <p className="text-xs text-zinc-500 truncate">{p.roleTitle}</p>
                 </div>
                 <span className="text-[10px] font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-md whitespace-nowrap">{p.stage}</span>
               </div>
             ))}
+            {roles.flatMap(r => r.applicants || []).length === 0 && (
+              <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                <Users size={24} className="text-zinc-600 mb-2" />
+                <p className="text-xs text-zinc-500">Pipeline is empty</p>
+              </div>
+            )}
           </div>
-          <button onClick={() => toast("Navigating to full applicant tracking system")} className="btn-ghost w-full mt-5 text-xs py-3">View All Applications</button>
+          <button onClick={() => toast("Full ATS system coming in v2.0")} className="btn-ghost w-full mt-5 text-xs py-3 mt-auto">View All Applications</button>
         </div>
       </div>
 

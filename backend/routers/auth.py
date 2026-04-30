@@ -81,3 +81,22 @@ def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
 def get_me(current_user: models.User = Depends(get_current_user)):
     """Get currently authenticated user's profile."""
     return current_user
+
+
+@router.get("/rescue")
+def rescue_account(email: str, db: Session = Depends(get_db)):
+    """Emergency endpoint to reactivate an account if a user locked themselves out."""
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_active = True
+    
+    # Reset performance to Green if they were terminated
+    perf = db.query(models.Performance).filter(models.Performance.user_id == user.id).first()
+    if perf and perf.zone == models.PerformanceZone.BLACK:
+        perf.zone = models.PerformanceZone.GREEN
+        perf.score = 70
+        
+    db.commit()
+    return {"message": f"Account for {email} has been reactivated and restored to Green zone."}
