@@ -67,7 +67,7 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     message = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -104,7 +104,7 @@ class ProjectActivity(Base):
     __tablename__ = "project_activities"
 
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, index=True)
     action = Column(String(200), nullable=False)  # "Build Run Completed", "Merged PR", etc.
     target = Column(String(200), nullable=True)   # "core-gameplay-loop"
     user_name = Column(String(100), nullable=True) # "System" or "Arjun"
@@ -117,7 +117,7 @@ class ProjectTask(Base):
     __tablename__ = "project_tasks"
 
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, index=True)
     title = Column(String(200), nullable=False)
     is_completed = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -193,7 +193,7 @@ class JobListing(Base):
     __tablename__ = "job_listings"
 
     id = Column(Integer, primary_key=True, index=True)
-    role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
+    role_id = Column(Integer, ForeignKey("roles.id"), nullable=False, index=True)
     platform = Column(String(100), nullable=False) # e.g. 'LinkedIn', 'Indeed'
     url = Column(String(255), nullable=True)
     status = Column(String(50), default="active") # "active", "paused", "closed"
@@ -223,10 +223,10 @@ class Attendance(Base):
     __tablename__ = "attendance"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     check_in = Column(DateTime(timezone=True), nullable=True)
     check_out = Column(DateTime(timezone=True), nullable=True)
-    date = Column(String(20), nullable=False)  # "YYYY-MM-DD"
+    date = Column(String(20), nullable=False, index=True)  # "YYYY-MM-DD"
     status = Column(String(20), default="present")  # "present" | "absent" | "half-day"
 
     # Relationships
@@ -240,8 +240,8 @@ class WorkLog(Base):
     __tablename__ = "work_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    date = Column(String(20), nullable=False)  # "YYYY-MM-DD"
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    date = Column(String(20), nullable=False, index=True)  # "YYYY-MM-DD"
     tasks_completed = Column(Text, nullable=False)
     blockers = Column(Text, nullable=True)
     hours_worked = Column(Float, nullable=True)
