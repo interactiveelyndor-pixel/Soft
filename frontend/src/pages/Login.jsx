@@ -9,7 +9,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState('intern');
+  const [role, setRole] = useState('core_team');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -120,9 +120,9 @@ const Login = () => {
                         onChange={(e) => setRole(e.target.value)}
                         className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl py-3 pl-11 pr-10 text-sm text-white focus:outline-none focus:border-primary/40 focus:bg-white/[0.05] transition-all appearance-none cursor-pointer"
                       >
-                        <option value="intern">Intern / Employee</option>
-                        <option value="ceo">Studio Head / CEO</option>
-                        <option value="client">Partner / Client</option>
+                        <option value="intern">Intern / Associate</option>
+                        <option value="core_team">Core Team Member</option>
+                        <option value="admin">System Administrator</option>
                       </select>
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" size={14} />
                     </div>

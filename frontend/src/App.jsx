@@ -5,8 +5,8 @@ import Sidebar from './components/Sidebar';
 import { useAuth } from './context/AuthContext';
 
 // Lazy load pages for better initial load performance
-const CEODashboard = lazy(() => import('./pages/CEODashboard'));
-const InternPortal = lazy(() => import('./pages/InternPortal'));
+const CoreDashboard = lazy(() => import('./pages/CoreDashboard'));
+const MyWorkspace = lazy(() => import('./pages/MyWorkspace'));
 const Login = lazy(() => import('./pages/Login'));
 const ClientPanel = lazy(() => import('./pages/ClientPanel'));
 const ClientProfile = lazy(() => import('./pages/ClientProfile'));
@@ -40,6 +40,8 @@ function App() {
     );
   }
 
+  const isManagement = user && ['core_team', 'admin'].includes(user.role);
+
   return (
     <Router>
       <Toaster theme="dark" position="top-right" toastOptions={{
@@ -67,9 +69,13 @@ function App() {
             </div>
           }>
             <Routes>
-              {user.role === 'ceo' ? (
+              {/* Universal Routes */}
+              <Route path="/workspace" element={<MyWorkspace />} />
+
+              {/* Management Routes */}
+              {isManagement && (
                 <>
-                  <Route path="/dashboard" element={<CEODashboard />} />
+                  <Route path="/dashboard" element={<CoreDashboard />} />
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/projects/:id" element={<ProjectWorkspace />} />
                   <Route path="/clients" element={<ClientPanel />} />
@@ -79,14 +85,11 @@ function App() {
                   <Route path="/resources/:id" element={<RoleDetail />} />
                   <Route path="/performance" element={<PerformanceGrid />} />
                   <Route path="/performance/:id" element={<PerformanceReport />} />
-                  <Route path="*" element={<Navigate to="/dashboard" />} />
-                </>
-              ) : (
-                <>
-                  <Route path="/intern" element={<InternPortal />} />
-                  <Route path="*" element={<Navigate to="/intern" />} />
                 </>
               )}
+
+              {/* Redirects */}
+              <Route path="*" element={<Navigate to={isManagement ? "/dashboard" : "/workspace"} />} />
             </Routes>
           </Suspense>
         </Layout>

@@ -6,7 +6,7 @@ from typing import List
 from database import get_db
 import models
 import schemas
-from auth import get_current_user, require_ceo
+from auth import get_current_user, require_core_team_or_admin
 from socket_manager import manager
 
 router = APIRouter(prefix="/worklogs", tags=["Work Logs"])
@@ -72,7 +72,7 @@ def my_work_logs(
 @router.get("/all", response_model=List[schemas.WorkLogOut])
 def all_work_logs(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Get all work logs (CEO view)."""
     return db.query(models.WorkLog)\

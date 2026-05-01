@@ -9,7 +9,6 @@ import api from '../services/api';
 const Sidebar = ({ role, onLogout }) => {
   const [notifications, setNotifications] = React.useState([]);
   const [showNotifications, setShowNotifications] = React.useState(false);
-  const isCEO = role === 'ceo';
 
   React.useEffect(() => {
     const fetchNotifications = async () => {
@@ -29,8 +28,9 @@ const Sidebar = ({ role, onLogout }) => {
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (e) {}
   };
+  const isManagement = ['core_team', 'admin'].includes(role);
 
-  const ceoLinks = [
+  const managementLinks = [
     { icon: LayoutGrid, label: 'Dashboard', to: '/dashboard' },
     { icon: Gamepad2, label: 'Projects', to: '/projects' },
     { icon: Users, label: 'Clients', to: '/clients' },
@@ -39,12 +39,12 @@ const Sidebar = ({ role, onLogout }) => {
     { icon: BarChart3, label: 'Performance', to: '/performance' },
   ];
 
-  const internLinks = [
-    { icon: Terminal, label: 'My Portal', to: '/intern' },
+  const commonLinks = [
+    { icon: Terminal, label: 'My Workspace', to: '/workspace' },
     { icon: Settings, label: 'Settings', to: '/settings' },
   ];
 
-  const links = isCEO ? ceoLinks : internLinks;
+  const links = isManagement ? [...commonLinks, ...managementLinks] : commonLinks;
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-[#060608] border-r border-white/[0.06] flex flex-col z-50">
@@ -113,11 +113,11 @@ const Sidebar = ({ role, onLogout }) => {
       <div className="px-3 py-4 border-t border-white/[0.06] space-y-1">
         <div className="flex items-center gap-3 px-3 py-3 rounded-xl mb-1">
           <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center text-xs text-primary font-bold flex-shrink-0">
-            {isCEO ? 'M' : 'E'}
+            {isManagement ? 'M' : 'E'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-white font-medium truncate">{isCEO ? 'Monish' : 'Operative'}</p>
-            <p className="text-[10px] text-zinc-600 uppercase tracking-widest truncate">{isCEO ? 'CEO & Founder' : 'Intern'}</p>
+            <p className="text-xs text-white font-medium truncate">{isManagement ? 'Core Lead' : 'Operative'}</p>
+            <p className="text-[10px] text-zinc-600 uppercase tracking-widest truncate">{role.replace('_', ' ')}</p>
           </div>
         </div>
         <button

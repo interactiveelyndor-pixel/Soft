@@ -18,10 +18,10 @@ def seed():
 
     # 1. Create Users
     ceo = models.User(
-        name="Monish",
-        email="ceo@elyndor.com",
+        name="Core Lead",
+        email="core@elyndor.com",
         hashed_password=hash_password("elyndor123"),
-        role="ceo",
+        role="core_team",
         department="Executive",
         avatar_initials="M"
     )

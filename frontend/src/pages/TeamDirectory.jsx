@@ -67,10 +67,10 @@ const TeamDirectory = () => {
               {user.avatar_initials || user.name.charAt(0)}
             </div>
             <h3 className="text-base font-semibold text-white mb-1 group-hover:text-primary transition-colors">{user.name}</h3>
-            <p className="text-xs text-zinc-400 mb-3">{user.department || 'Operative'} · {user.role === 'ceo' ? 'Director' : 'Intern'}</p>
+            <p className="text-xs text-zinc-400 mb-3">{user.department || 'Operative'} · {user.role.replace('_', ' ')}</p>
             
-            {user.role === 'ceo' && (
-              <span className="badge-green mb-4"><ShieldCheck size={11}/> Admin Access</span>
+            {['core_team', 'admin'].includes(user.role) && (
+              <span className="badge-green mb-4"><ShieldCheck size={11}/> Core Access</span>
             )}
             
             <a href={`mailto:${user.email}`} className="btn-ghost w-full py-2.5 text-xs mt-auto">

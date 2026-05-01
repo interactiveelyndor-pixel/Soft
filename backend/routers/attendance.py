@@ -6,7 +6,7 @@ from typing import List
 from database import get_db
 import models
 import schemas
-from auth import get_current_user, require_ceo
+from auth import get_current_user, require_core_team_or_admin
 from socket_manager import manager
 
 router = APIRouter(prefix="/attendance", tags=["Attendance"])
@@ -135,7 +135,7 @@ def today_attendance(
 @router.get("/all", response_model=List[schemas.AttendanceOut])
 def all_attendance(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Get all attendance records. CEO only."""
     return db.query(models.Attendance)\

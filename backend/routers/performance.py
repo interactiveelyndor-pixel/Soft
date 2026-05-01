@@ -5,7 +5,7 @@ from typing import List
 from database import get_db
 import models
 import schemas
-from auth import require_ceo
+from auth import require_core_team_or_admin
 
 router = APIRouter(prefix="/performance", tags=["Performance"])
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/performance", tags=["Performance"])
 @router.get("/", response_model=List[schemas.PerformanceOut])
 def list_performance(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Get all performance records. CEO only."""
     return db.query(models.Performance)\
@@ -25,7 +25,7 @@ def list_performance(
 def update_performance(
     data: schemas.PerformanceUpdate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Update or create a performance record for a user. CEO only."""
     record = db.query(models.Performance).filter(
@@ -50,7 +50,7 @@ def update_performance(
 @router.get("/users", response_model=List[schemas.UserOut])
 def list_team_members(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """List all team members for CEO management view."""
     return db.query(models.User).filter(models.User.is_active == True).all()
@@ -60,7 +60,7 @@ def list_team_members(
 def deactivate_user(
     user_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Deactivate (terminate) a user. CEO only."""
     user = db.query(models.User).filter(models.User.id == user_id).first()

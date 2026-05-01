@@ -5,7 +5,7 @@ from typing import List
 from database import get_db
 import models
 import schemas
-from auth import get_current_user, require_ceo
+from auth import get_current_user, require_core_team_or_admin
 from socket_manager import manager
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
@@ -32,7 +32,7 @@ def assign_member(
     project_id: int,
     user_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Assign an operative to a project."""
     project = db.query(models.Project).filter(models.Project.id == project_id).first()
@@ -172,7 +172,7 @@ async def delete_task(
 def create_project(
     data: schemas.ProjectCreate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Create a new project. CEO only."""
     project = models.Project(**data.model_dump())
@@ -200,7 +200,7 @@ def update_project(
     project_id: int,
     data: schemas.ProjectUpdate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Update a project. CEO only."""
     project = db.query(models.Project).filter(models.Project.id == project_id).first()
@@ -219,7 +219,7 @@ def update_project(
 def delete_project(
     project_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Delete a project. CEO only."""
     project = db.query(models.Project).filter(models.Project.id == project_id).first()

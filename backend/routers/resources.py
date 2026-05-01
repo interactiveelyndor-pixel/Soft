@@ -5,7 +5,7 @@ from typing import List
 from database import get_db
 import models
 import schemas
-from auth import require_ceo
+from auth import require_core_team_or_admin
 
 router = APIRouter(prefix="/resources", tags=["Human Resources"])
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/resources", tags=["Human Resources"])
 @router.get("/", response_model=List[schemas.RoleOut])
 def list_roles(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """List all open/filled roles. CEO only."""
     return db.query(models.Role).all()
@@ -24,7 +24,7 @@ def add_applicant(
     role_id: int,
     data: schemas.ApplicantCreate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Add an applicant to a role pipeline."""
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
@@ -50,7 +50,7 @@ def update_applicant(
     applicant_id: int,
     data: schemas.ApplicantUpdate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Update applicant stage/notes."""
     applicant = db.query(models.Applicant).filter(
@@ -75,7 +75,7 @@ def update_applicant(
 def create_role(
     data: schemas.RoleCreate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Create a new role/position. CEO only."""
     role = models.Role(**data.model_dump())
@@ -90,7 +90,7 @@ def update_role(
     role_id: int,
     data: schemas.RoleUpdate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Update a role. CEO only."""
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
@@ -109,7 +109,7 @@ def update_role(
 def delete_role(
     role_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Delete a role. CEO only."""
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
@@ -124,7 +124,7 @@ def add_job_listing(
     role_id: int,
     data: schemas.JobListingCreate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Publish to a job board."""
     role = db.query(models.Role).filter(models.Role.id == role_id).first()

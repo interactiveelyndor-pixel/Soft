@@ -4,7 +4,7 @@ import { Gamepad2, Users, Briefcase, Activity, TrendingUp, TrendingDown, Sparkle
 import { toast } from 'sonner';
 import api from '../services/api';
 
-const CEODashboard = () => {
+const CoreDashboard = () => {
   const [stats, setStats] = useState([]);
   const [projects, setProjects] = useState([]);
   const [briefing, setBriefing] = useState("Initializing Elyndor AI. Fetching real-time studio metrics...");
@@ -232,4 +232,4 @@ const CEODashboard = () => {
   );
 };
 
-export default CEODashboard;
+export default CoreDashboard;

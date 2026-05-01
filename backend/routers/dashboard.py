@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 import models
 import schemas
-from auth import require_ceo
+from auth import require_core_team_or_admin
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 @router.get("/stats", response_model=schemas.DashboardStats)
 def get_dashboard_stats(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Return real-time CEO dashboard KPI stats."""
     active_projects = db.query(models.Project).filter(
@@ -54,7 +54,7 @@ def get_dashboard_stats(
 @router.get("/briefing")
 def get_ai_briefing(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Generate a dynamic AI-like briefing based on current database state."""
     active_projects = db.query(models.Project).filter(models.Project.status == models.ProjectStatus.ACTIVE).count()
