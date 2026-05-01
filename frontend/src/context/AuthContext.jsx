@@ -39,9 +39,10 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       return { success: true };
     } catch (error) {
+      console.error('LOGIN ERROR:', error);
       return { 
         success: false, 
-        message: error.response?.data?.detail || 'Login failed' 
+        message: error.response?.data?.detail || 'Login failed. Please check connection.' 
       };
     }
   };
@@ -52,9 +53,10 @@ export const AuthProvider = ({ children }) => {
       // Auto login after registration
       return await login(userData.email, userData.password);
     } catch (error) {
+      console.error('REGISTRATION ERROR:', error);
       return {
         success: false,
-        message: error.response?.data?.detail || 'Registration failed'
+        message: error.response?.data?.detail || 'Registration failed. Please check connection.'
       };
     }
   };

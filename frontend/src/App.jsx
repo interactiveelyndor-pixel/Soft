@@ -40,7 +40,7 @@ function App() {
     );
   }
 
-  const isManagement = user && ['core_team', 'admin'].includes(user.role);
+  const isManagement = user && ['core_team', 'admin', 'ceo'].includes(user.role);
 
   return (
     <Router>

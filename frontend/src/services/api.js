@@ -1,13 +1,23 @@
 import axios from 'axios';
 
-let API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+let API_URL = import.meta.env.VITE_API_BASE_URL;
 
-// If Render injected just the internal hostname (e.g. elyndor-backend-lo3d), append .onrender.com
+// Fallback to current origin if we are in production and VITE_API_BASE_URL is missing
+if (!API_URL && !import.meta.env.DEV) {
+  API_URL = window.location.origin.replace('frontend', 'backend').replace('soft', 'soft-backend');
+}
+
+// Default fallback
+if (!API_URL) {
+  API_URL = 'http://localhost:8000';
+}
+
+// Clean up Render subdomains if they come in partially
 if (API_URL && !API_URL.includes('localhost') && !API_URL.includes('onrender.com')) {
   API_URL = `${API_URL}.onrender.com`;
 }
 
-// If it's a hostname from Render (no protocol), prepend https://
+// Prepend protocol if missing
 if (API_URL && !API_URL.startsWith('http')) {
   API_URL = `https://${API_URL}`;
 }
