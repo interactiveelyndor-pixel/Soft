@@ -38,9 +38,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('elyndor_token');
-      localStorage.removeItem('elyndor_user');
-      window.location.href = '/login';
+      // Don't redirect on login/register failures, let the components handle the error
+      const isAuthEndpoint = error.config.url === '/auth/login' || error.config.url === '/auth/register';
+      
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('elyndor_token');
+        localStorage.removeItem('elyndor_user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
