@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -40,10 +40,10 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('LOGIN ERROR:', error);
-      return { 
-        success: false, 
-        message: error.response?.data?.detail || 'Login failed. Please check connection.' 
-      };
+      const msg = error.response 
+        ? (error.response.data?.detail || 'Invalid credentials') 
+        : `Connection failed. Is the API running at ${API_URL}?`;
+      return { success: false, message: msg };
     }
   };
 
@@ -54,9 +54,12 @@ export const AuthProvider = ({ children }) => {
       return await login(userData.email, userData.password);
     } catch (error) {
       console.error('REGISTRATION ERROR:', error);
+      const msg = error.response 
+        ? (error.response.data?.detail || 'Registration failed') 
+        : `Connection failed. Is the API running at ${API_URL}?`;
       return {
         success: false,
-        message: error.response?.data?.detail || 'Registration failed. Please check connection.'
+        message: msg
       };
     }
   };
