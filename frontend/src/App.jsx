@@ -71,16 +71,16 @@ function App() {
             <Routes>
               {/* Universal Routes */}
               <Route path="/workspace" element={<MyWorkspace />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:id" element={<ProjectWorkspace />} />
+              <Route path="/team" element={<TeamDirectory />} />
 
               {/* Management Routes */}
               {isManagement && (
                 <>
                   <Route path="/dashboard" element={<CoreDashboard />} />
-                  <Route path="/projects" element={<Projects />} />
-                  <Route path="/projects/:id" element={<ProjectWorkspace />} />
                   <Route path="/clients" element={<ClientPanel />} />
                   <Route path="/clients/:id" element={<ClientProfile />} />
-                  <Route path="/team" element={<TeamDirectory />} />
                   <Route path="/resources" element={<ResourceManager />} />
                   <Route path="/resources/:id" element={<RoleDetail />} />
                   <Route path="/performance" element={<PerformanceGrid />} />

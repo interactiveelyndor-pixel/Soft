@@ -28,19 +28,19 @@ const Sidebar = ({ role, onLogout }) => {
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (e) {}
   };
-  const isManagement = ['core_team', 'admin'].includes(role);
+  const isManagement = ['core_team', 'admin', 'ceo'].includes(role);
 
   const managementLinks = [
     { icon: LayoutGrid, label: 'Dashboard', to: '/dashboard' },
-    { icon: Gamepad2, label: 'Projects', to: '/projects' },
     { icon: Users, label: 'Clients', to: '/clients' },
-    { icon: Contact, label: 'Directory', to: '/team' },
     { icon: Briefcase, label: 'Resources', to: '/resources' },
     { icon: BarChart3, label: 'Performance', to: '/performance' },
   ];
 
   const commonLinks = [
     { icon: Terminal, label: 'My Workspace', to: '/workspace' },
+    { icon: Gamepad2, label: 'Projects', to: '/projects' },
+    { icon: Contact, label: 'Directory', to: '/team' },
     { icon: Settings, label: 'Settings', to: '/settings' },
   ];
 

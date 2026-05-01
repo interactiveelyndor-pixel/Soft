@@ -5,7 +5,7 @@ from typing import List
 from database import get_db
 import models
 import schemas
-from auth import require_core_team_or_admin
+from auth import require_core_team_or_admin, get_current_user
 
 router = APIRouter(prefix="/performance", tags=["Performance"])
 
@@ -50,9 +50,9 @@ def update_performance(
 @router.get("/users", response_model=List[schemas.UserOut])
 def list_team_members(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_core_team_or_admin)
+    current_user: models.User = Depends(get_current_user)
 ):
-    """List all team members for CEO management view."""
+    """List all team members."""
     return db.query(models.User).filter(models.User.is_active == True).all()
 
 
