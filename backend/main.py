@@ -8,7 +8,7 @@ import models
 
 # Import all routers
 from routers import auth, projects, clients, resources, attendance, worklogs, performance, dashboard, notifications, activities
-from websockets import manager
+from socket_manager import manager
 from fastapi import WebSocket, WebSocketDisconnect
 
 load_dotenv()

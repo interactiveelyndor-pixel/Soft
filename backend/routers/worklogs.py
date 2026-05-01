@@ -7,7 +7,7 @@ from database import get_db
 import models
 import schemas
 from auth import get_current_user, require_ceo
-from websockets import manager
+from socket_manager import manager
 
 router = APIRouter(prefix="/worklogs", tags=["Work Logs"])
 
