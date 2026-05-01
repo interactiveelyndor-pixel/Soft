@@ -5,7 +5,7 @@ from typing import List
 from database import get_db
 import models
 import schemas
-from auth import get_current_user, require_ceo
+from auth import get_current_user, require_core_team_or_admin
 
 router = APIRouter(prefix="/clients", tags=["Clients"])
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/clients", tags=["Clients"])
 @router.get("/", response_model=List[schemas.ClientOut])
 def list_clients(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """List all clients. CEO only."""
     return db.query(models.Client).all()
@@ -24,7 +24,7 @@ def log_communication(
     client_id: int,
     data: schemas.ClientCommunicationCreate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Log a communication or event with a client."""
     client = db.query(models.Client).filter(models.Client.id == client_id).first()
@@ -46,7 +46,7 @@ def log_communication(
 def get_client_projects(
     client_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Get all projects linked to a client."""
     client = db.query(models.Client).filter(models.Client.id == client_id).first()
@@ -60,7 +60,7 @@ def get_client_projects(
 def create_client(
     data: schemas.ClientCreate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Add a new client. CEO only."""
     client = models.Client(**data.model_dump())
@@ -74,7 +74,7 @@ def create_client(
 def get_client(
     client_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Get a single client."""
     client = db.query(models.Client).filter(models.Client.id == client_id).first()
@@ -88,7 +88,7 @@ def update_client(
     client_id: int,
     data: schemas.ClientUpdate,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Update a client. CEO only."""
     client = db.query(models.Client).filter(models.Client.id == client_id).first()
@@ -107,7 +107,7 @@ def update_client(
 def delete_client(
     client_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_ceo)
+    _: models.User = Depends(require_core_team_or_admin)
 ):
     """Delete a client. CEO only."""
     client = db.query(models.Client).filter(models.Client.id == client_id).first()
